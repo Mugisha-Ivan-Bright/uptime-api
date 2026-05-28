@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+.idea/
+coverage/
+.turbo/
+*.tsbuildinfo
+.next/
+.cache/
+server.log
+
+# Prisma
+packages/db/node_modules/.prisma/
+packages/db/generated/
+
+# OS
+Thumbs.db
+Desktop.ini

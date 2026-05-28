@@ -1,0 +1,12 @@
+{
+  "name": "uptime",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @uptime/api dev",
+    "dev:dashboard": "pnpm --filter @uptime/dashboard dev",
+    "dev:status": "pnpm --filter @uptime/status dev",
+    "build": "pnpm --filter @uptime/api build",
+    "db:generate": "pnpm --filter @uptime/db generate",
+    "db:migrate": "pnpm --filter @uptime/db migrate"
+  }
+}

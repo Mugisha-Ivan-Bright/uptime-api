@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id               String         @id @default(uuid())
+  name             String
+  slug             String         @unique
+  plan             String         @default("hobby")
+  stripeCustomerId String?        @unique
+  createdAt        DateTime       @default(now())
+  monitors         Monitor[]
+  incidents        Incident[]
+  alertChannels    AlertChannel[]
+  users            User[]
+  apiKeys          ApiKey[]
+  subscription     Subscription?
+}
+
+model Subscription {
+  id               String    @id @default(uuid())
+  orgId            String    @unique
+  stripeCustomerId String    @unique
+  stripeSubId      String    @unique
+  plan             String
+  status           String
+  currentPeriodEnd DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  org Organization @relation(fields: [orgId], references: [id])
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  orgId        String
+  role         String    @default("member")
+  org          Organization @relation(fields: [orgId], references: [id])
+  apiKeys      ApiKey[]
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  orgId       String
+  userId      String
+  name        String
+  keyHash     String    @unique
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+  org         Organization @relation(fields: [orgId], references: [id])
+  user        User         @relation(fields: [userId], references: [id])
+}
+
+model Monitor {
+  id              String         @id @default(uuid())
+  orgId           String
+  name            String
+  url             String
+  type            String         @default("http")
+  intervalSeconds Int            @default(60)
+  regions         String[]
+  httpMethod      String         @default("GET")
+  expectedStatus  Int            @default(200)
+  keywordContains String?
+  sslCheckEnabled Boolean        @default(false)
+  timeoutMs       Int            @default(10000)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+
+  org           Organization    @relation(fields: [orgId], references: [id])
+  checkResults  CheckResult[]
+  incidents     Incident[]
+}
+
+model CheckResult {
+  id             String
+  monitorId      String
+  region         String
+  checkedAt      DateTime          @default(now()) @db.Timestamptz()
+  status         String
+  responseTimeMs Int
+  statusCode     Int?
+  errorMessage   String?
+  sslExpiryDays  Int?
+
+  monitor Monitor @relation(fields: [monitorId], references: [id])
+
+  @@id([id, checkedAt])
+}
+
+model Incident {
+  id              String    @id @default(uuid())
+  monitorId       String
+  orgId           String
+  startedAt       DateTime  @default(now())
+  resolvedAt      DateTime?
+  rootRegion      String
+  affectedRegions String[]
+  cause           String
+  acknowledgedAt  DateTime?
+  acknowledgedBy  String?
+
+  monitor Monitor       @relation(fields: [monitorId], references: [id])
+  org     Organization  @relation(fields: [orgId], references: [id])
+}
+
+model AlertChannel {
+  id       String   @id @default(uuid())
+  orgId    String
+  type     String
+  config   Json
+  notifyOn String[]
+
+  org Organization @relation(fields: [orgId], references: [id])
+}
