@@ -10,7 +10,7 @@ coverage/
 .next/
 .cache/
 server.log
-
+agent.txt
 # Prisma
 packages/db/node_modules/.prisma/
 packages/db/generated/
